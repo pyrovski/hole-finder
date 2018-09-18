@@ -76,17 +76,18 @@ int CheckFile(string filename, const size_t chunk_size) {
     return all_zeros;
   };
 
-  for (off_t offset = 0; offset <= block_size * (file_size / block_size);) {
+  for (off_t offset = 0; offset < file_size;) {
     auto read_size = read_block(offset);
     if (read_size == -1) {
       return -1;
     }
     const bool all_zeros = check_read(read_size);
     update_interval(offset, read_size, all_zeros);
-    if (all_zeros) {
-      offset += block_size;
+    offset += read_size;
+    if (all_zeros || !(offset % chunk_size)) {
+      continue;
     } else {
-      offset += chunk_size;
+      offset = ((offset / chunk_size) + 1) * chunk_size;
     }
   }
   close(fd);
