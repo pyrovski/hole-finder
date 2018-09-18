@@ -38,6 +38,8 @@ int CheckFile(string filename, const size_t chunk_size) {
     assert(read_offset >= 0);
     assert(read_offset < file_size);
     ssize_t read_size = min(block_size, file_size - read_offset);
+    // cerr << "reading\t" << read_size << "\tat\t" << read_offset << "\tfrom\t"
+    //      << filename << endl;
     auto res = pread(fd, &buf[0], read_size, read_offset);
     if (res == -1) {
       cerr << filename << ": " << strerror(errno) << endl;
@@ -59,26 +61,28 @@ int CheckFile(string filename, const size_t chunk_size) {
     return true;
   };
 
-  auto update_interval = [&start, &end, &filename](
+  auto update_interval = [&start, &end, &filename, &file_size](
       off_t offset, ssize_t read_size, bool all_zeros) -> bool {
     if (all_zeros) {
       if (start == -1) {
         start = offset;
       }
       end = offset + read_size;
-    } else if (start != -1) {
+    }
+    if ((!all_zeros && start != -1) || end == file_size) {
       cout << filename << "\t" << start << "\t" << end - start << endl;
       start = -1;
     }
     return all_zeros;
   };
 
-  for (off_t offset = 0; offset < block_size * (file_size / block_size);) {
+  for (off_t offset = 0; offset <= block_size * (file_size / block_size);) {
     auto read_size = read_block(offset);
     if (read_size == -1) {
       return -1;
     }
-    bool all_zeros = update_interval(offset, read_size, check_read(read_size));
+    const bool all_zeros = check_read(read_size);
+    update_interval(offset, read_size, all_zeros);
     if (all_zeros) {
       offset += block_size;
     } else {
