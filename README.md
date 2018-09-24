@@ -2,7 +2,7 @@
 Find aligned chunks of zeros in a file without reading the whole file.
 Some network filesystems (e.g., LizardFS) can punch holes in a file if they can't reconstruct the whole file.
 These chunks come at regular alignments. This tool scans files for zeros starting at each aligned file chunk and
-scans the file until finds a nonzero byte. The tool reports the offsets and sizes of detected holes of zeros in the file. their
+scans the file until finds a nonzero byte. The tool reports the offsets and sizes of detected holes of zeros in the file.
 
 Example:
 
